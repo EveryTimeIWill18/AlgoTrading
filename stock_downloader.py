@@ -9,6 +9,7 @@ import ssl
 import socket
 import requests
 from pprint import pprint
+from collections import OrderedDict
 from bs4 import BeautifulSoup
 from typing import List, Optional, Mapping, Dict, NoReturn, NewType, Type, TypeVar, Tuple, Text, ByteString, AnyStr, Any
 
@@ -116,100 +117,79 @@ class StockDownloader(object):
         return payload
 
 
-    def download_stock_data(self):
+    def download_stock_data(self) -> Mapping[str, List[str]]:
         """Download the stock data information"""
-        try:
-            r = requests.get(self.create_payload_string())
-            if r.status_code == 200:
-                print(r.url)
-                content = r.content.__str__()
-                soup = BeautifulSoup(content, 'html.parser')
-                #print(soup.prettify())
 
-                # extract the dates, values[Open, High, Low, Close*, Adj Close**, Volume]
-                date_re = re.compile(r'<span\sdata-reactid="\d{1,3}">([A-S]\w{1,4}\s\d{2},\s\d{4})')
-                values_re = re.compile(r'<span\sdata-reactid="\d{1,3}">(\d{1,7}\.\d{0,10})')
-                volume_re = re.compile(r'<span\sdata-reactid="\d{1,3}">(\d{1,3}?,\d{1,3}?,\d{1,3})')
+        r = requests.get(self.create_payload_string())
+        if r.status_code == 200:
+            print(r.url)
+            content = r.content.__str__()
+            soup = BeautifulSoup(content, 'html.parser')
+            # print(soup.prettify())
 
-                # load in the data
-                dates = date_re.findall(content)
-                values = values_re.findall(content)
-                volumes = volume_re.findall(content)
-                print(dates)
-                print(f"len(dates): {len(dates)}")
-                print(values)
-                print(f"len(values): {len(values)/5}")
-                print(volumes)
-                print(f"len(volumes): {len(volumes)}")
+            # extract the dates, values[Open, High, Low, Close*, Adj Close**, Volume]
+            date_re = re.compile(r'<span\sdata-reactid="\d{1,3}">([A-S]\w{1,4}\s\d{2},\s\d{4})')
+            values_re = re.compile(r'<span\sdata-reactid="\d{1,3}">(\d{1,7}\.\d{0,10})')
+            volume_re = re.compile(r'<span\sdata-reactid="\d{1,3}">(\d{1,3}?,\d{1,3}?,\d{1,3})')
 
-                self.data_set = {d: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
-                                 for d in dates}
-                i = 0
-                j = 0
-                for d in self.data_set:
-                    current = self.data_set[d]
-                    for k, _ in enumerate(current):
-                        if i < len(values):
-                            if i%6 == 0:
-                                current[list(current.keys())[k]] = values[i]
-                            if i%6 == 1:
-                                current[list(current.keys())[k]] = values[i]
-                            if i%6 == 2:
-                                current[list(current.keys())[k]] = values[i]
-                            if i%6 == 3:
-                                current[list(current.keys())[k]] = values[i]
-                            if i%6 == 4:
-                                current[list(current.keys())[k]] = values[i]
-                            if j < len(volumes):
-                                if i%6 == 5:
-                                    current[list(current.keys())[k]] = volumes[j]
+            # load in the data
+            dates = date_re.findall(content)
+            values = values_re.findall(content)
+            volumes = volume_re.findall(content)
 
+            extracted_data = {'Dates': dates, 'Values': values, 'Volumes': volumes}
+            return extracted_data
 
+    def format_stock_data(self):
+        """Reformat the extracted stock data into a usable form"""
 
+            # print(dates)
+            # print(values)
+            # print(volumes)
+            # print(len(values))
+            #
+            # self.data_set = {d: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
+            #                  for d in dates}
+            #
+            # value_iter = 0
+            # volume_iter = 0
+            #
+            # for d in self.data_set:
+            #     current = self.data_set[d]
+            #     for i, _ in enumerate(list(current.keys())):
+            #         if value_iter < len(values):
+            #             if value_iter % 5 == 0:
+            #                 current["Open"].append(values[value_iter])
+            #                 # print(f"value_iter = {value_iter}")
+            #                 # print(f"values[{value_iter}] = {values[value_iter]}")
+            #                 # current['Open'].append(values[value_iter])
+            #         value_iter += 1
 
-
-                        # if i < len(values):
-                        #     if k%6 == 0:
-                        #         print(k)
-                        #     # if i%6 == 1:
-                        #     #     current[k] = values[i]
-                        #     # if i%6 == 2:
-                        #     #     current[k] = values[i]
-                        #     #
-                        #
-                        # elif i >= len(values):
-                        #     print(f"i is out of range: {i}")
-                        #
-                        # if j < len(volumes):
-                        #     if i%6 == 5:
-                        #         current[k] =  volumes[j]
-                        # elif j >= len(volumes):
-                        #     print(f"j is out of range: {j}")
-
-                        i += 1
-                        j += 1
+            # for d in self.data_set:
+            #     current = self.data_set[d]
+            #     for i, _ in enumerate(list(current.keys())):
+            #         print(f"current.keys(){[i]} = {list(current.keys())[i]}")
+            #         print(f"current[{i}] = {current[list(current.keys())[i]]}")
+            #         if value_iter < len(values):
+            #             if value_iter%5 == 0:
+            #                 current[list(current.keys())[i]] = values[value_iter]
+            #         value_iter += 1
+            #
+            # pprint(self.data_set)
 
 
 
 
-
-
-            #pprint(self.data_set)
-
-
-
-
-
-
-        except Exception as e:
-            print(e)
 
 
 sd = StockDownloader()
 sd.set_stocks(apple='AAPL', microsoft='MSFT', phressia='PHR', intel='INTC')
-sd.set_time_periods(1553400000, 1569297600, 1000000, 2000000)
+sd.set_time_periods(1568865600, 1569297600, 1000000, 2000000)
 payload = sd.create_payload_string()
-sd.download_stock_data()
+stocks = sd.download_stock_data()
+pprint(stocks)
+#pprint(list(sd.data_set['Sep 20, 2019'].keys()))
+
 
 
 # http_socket = HttpRequest()

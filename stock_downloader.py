@@ -142,6 +142,57 @@ class StockDownloader(object):
 
     def format_stock_data(self):
         """Reformat the extracted stock data into a usable form"""
+        stocks = self.download_stock_data()
+
+        self.data_set = {d: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
+                            for d in stocks['Dates']}
+
+        value_iter = 0
+        offset = 0
+        for d in self.data_set:
+            current = self.data_set[d]
+            while offset < 5:
+                if offset % 5 == 0:
+                    current['Open'] = stocks['Values'][value_iter]
+                if offset % 5 == 1:
+                    current['High']
+                offset += 1
+                value_iter += 1
+
+
+
+
+
+
+
+        # for i, _ in enumerate(stocks['Values']):
+        #     for d in self.data_set:
+        #         current = self.data_set[d]
+        #         for j, _ in enumerate(list(current.keys())):
+        #             if i % 5 == 0 and j % 6 == 0:
+        #                 current[list(current.keys())[j]] = stocks['Values'][i]
+        #         break
+
+
+        # for d in self.data_set:
+        #     current = self.data_set[d]
+        #     for i, _ in enumerate(stocks['Values']):
+        #         if i % 5 == 0 and j % 6 == 0:
+        #             current[list(current.keys())[j]].append(stocks['Values'][i])
+            #
+            #
+            # for k, _ in enumerate(list(current.keys())):
+            #     if k == 0:
+            #
+            #         print(list(current.keys())[k])
+            #     if k == 1:
+            #         print(list(current.keys())[k])
+
+
+
+
+
+
 
             # print(dates)
             # print(values)
@@ -187,8 +238,9 @@ sd.set_stocks(apple='AAPL', microsoft='MSFT', phressia='PHR', intel='INTC')
 sd.set_time_periods(1568865600, 1569297600, 1000000, 2000000)
 payload = sd.create_payload_string()
 stocks = sd.download_stock_data()
-pprint(stocks)
-#pprint(list(sd.data_set['Sep 20, 2019'].keys()))
+sd.format_stock_data()
+pprint(sd.data_set)
+pprint(list(sd.data_set['Sep 20, 2019'].keys()))
 
 
 

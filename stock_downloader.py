@@ -144,7 +144,7 @@ class StockDownloader(object):
         """Reformat the extracted stock data into a usable form"""
         stocks = self.download_stock_data()
         self.data_set = {stocks['Dates'][i]: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [],
-                             'Volume': [stocks['Volumes'][i]]}
+                             'Volume': int(stocks['Volumes'][i].replace(',' ,''))}
                         for i, _ in enumerate(stocks['Dates'])}
         value_counter = 0
         for k in list(self.data_set.keys()):
@@ -182,7 +182,7 @@ class StockDownloader(object):
 
 sd = StockDownloader()
 sd.set_stocks(apple='AAPL', microsoft='MSFT', phressia='PHR', intel='INTC')
-sd.set_time_periods(1568865600, 1569297600, 1000000, 2000000)
+sd.set_time_periods(1568865600, 1569902400, 1000000, 2000000)
 payload = sd.create_payload_string()
 stocks = sd.download_stock_data()
 for k in stocks.keys():

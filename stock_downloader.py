@@ -9,7 +9,7 @@ import ssl
 import socket
 import requests
 from pprint import pprint
-from collections import OrderedDict
+from itertools import chain
 from bs4 import BeautifulSoup
 from typing import List, Optional, Mapping, Dict, NoReturn, NewType, Type, TypeVar, Tuple, Text, ByteString, AnyStr, Any
 
@@ -140,53 +140,29 @@ class StockDownloader(object):
             extracted_data = {'Dates': dates, 'Values': values, 'Volumes': volumes}
             return extracted_data
 
-    def format_stock_data(self):
+    def reformat_stock_data(self):
         """Reformat the extracted stock data into a usable form"""
         stocks = self.download_stock_data()
-
-        self.data_set = {d: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
-                            for d in stocks['Dates']}
-
-        value_iter = 0
-        offset = 0
-        for d in self.data_set:
-            current = self.data_set[d]
-            while offset < 5:
-                if offset % 5 == 0:
-                    current['Open'] = stocks['Values'][value_iter]
-                if offset % 5 == 1:
-                    current['High']
-                offset += 1
-                value_iter += 1
-
-
-
-
-
-
-
-        # for i, _ in enumerate(stocks['Values']):
-        #     for d in self.data_set:
-        #         current = self.data_set[d]
-        #         for j, _ in enumerate(list(current.keys())):
-        #             if i % 5 == 0 and j % 6 == 0:
-        #                 current[list(current.keys())[j]] = stocks['Values'][i]
-        #         break
-
-
-        # for d in self.data_set:
-        #     current = self.data_set[d]
-        #     for i, _ in enumerate(stocks['Values']):
-        #         if i % 5 == 0 and j % 6 == 0:
-        #             current[list(current.keys())[j]].append(stocks['Values'][i])
-            #
-            #
-            # for k, _ in enumerate(list(current.keys())):
-            #     if k == 0:
-            #
-            #         print(list(current.keys())[k])
-            #     if k == 1:
-            #         print(list(current.keys())[k])
+        self.data_set = {stocks['Dates'][i]: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [],
+                             'Volume': [stocks['Volumes'][i]]}
+                        for i, _ in enumerate(stocks['Dates'])}
+        value_counter = 0
+        for k in list(self.data_set.keys()):
+            current_date = self.data_set[k]
+            counter = 0
+            while counter < 5:
+                if counter == 0:
+                    current_date["Open"] = float(stocks["Values"][value_counter])
+                if counter == 1:
+                    current_date["High"] = float(stocks["Values"][value_counter])
+                if counter == 2:
+                    current_date["Low"] = float(stocks["Values"][value_counter])
+                if counter == 3:
+                    current_date["Close"] = float(stocks["Values"][value_counter])
+                if counter == 4:
+                    current_date["Adj Close"] = float(stocks["Values"][value_counter])
+                value_counter += 1
+                counter += 1
 
 
 
@@ -194,39 +170,10 @@ class StockDownloader(object):
 
 
 
-            # print(dates)
-            # print(values)
-            # print(volumes)
-            # print(len(values))
-            #
-            # self.data_set = {d: {'Open': [], 'High': [], 'Low': [], 'Close': [], 'Adj Close': [], 'Volume': []}
-            #                  for d in dates}
-            #
-            # value_iter = 0
-            # volume_iter = 0
-            #
-            # for d in self.data_set:
-            #     current = self.data_set[d]
-            #     for i, _ in enumerate(list(current.keys())):
-            #         if value_iter < len(values):
-            #             if value_iter % 5 == 0:
-            #                 current["Open"].append(values[value_iter])
-            #                 # print(f"value_iter = {value_iter}")
-            #                 # print(f"values[{value_iter}] = {values[value_iter]}")
-            #                 # current['Open'].append(values[value_iter])
-            #         value_iter += 1
 
-            # for d in self.data_set:
-            #     current = self.data_set[d]
-            #     for i, _ in enumerate(list(current.keys())):
-            #         print(f"current.keys(){[i]} = {list(current.keys())[i]}")
-            #         print(f"current[{i}] = {current[list(current.keys())[i]]}")
-            #         if value_iter < len(values):
-            #             if value_iter%5 == 0:
-            #                 current[list(current.keys())[i]] = values[value_iter]
-            #         value_iter += 1
-            #
-            # pprint(self.data_set)
+
+
+
 
 
 
@@ -238,9 +185,12 @@ sd.set_stocks(apple='AAPL', microsoft='MSFT', phressia='PHR', intel='INTC')
 sd.set_time_periods(1568865600, 1569297600, 1000000, 2000000)
 payload = sd.create_payload_string()
 stocks = sd.download_stock_data()
-sd.format_stock_data()
+for k in stocks.keys():
+    print(k, len(stocks[k]))
+sd.reformat_stock_data()
 pprint(sd.data_set)
-pprint(list(sd.data_set['Sep 20, 2019'].keys()))
+#pprint(sd.data_set)
+#pprint(list(sd.data_set['Sep 20, 2019'].keys()))
 
 
 
